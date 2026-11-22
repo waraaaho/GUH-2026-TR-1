@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PearStudy — Offline P2P Course Knowledge Mesh</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --card-bg: #141b24;
+      --border: #243242;
+      --accent: #26a17b; /* Sovereign teal/green */
+      --accent-glow: rgba(38, 161, 123, 0.25);
+      --gold: #f4c430;
+      --text: #e2e8f0;
+      --text-muted: #8b9bb4;
+      --danger: #ef4444;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 24px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), #1c7457);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 20px;
+      color: #fff;
+    }
+    .brand h1 { font-size: 22px; font-weight: 700; }
+    .brand-subtitle { font-size: 13px; color: var(--text-muted); }
+    .badges { display: flex; gap: 10px; align-items: center; }
+    .badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-qvac { background: rgba(38, 161, 123, 0.15); color: var(--accent); border: 1px solid var(--accent); }
+    .badge-offline { background: rgba(244, 196, 48, 0.15); color: var(--gold); border: 1px solid var(--gold); }
+    .badge-cloud { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid var(--danger); }
+    
+    .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text);
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .course-item {
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .course-item:hover, .course-item.selected {
+      border-color: var(--accent);
+      background: rgba(38, 161, 123, 0.08);
+    }
+    .course-code { font-weight: 700; font-size: 13px; color: var(--accent); }
+    .course-name { font-size: 13px; color: var(--text); }
+    
+    .chat-box {
+      display: flex;
+      flex-direction: column;
+      height: 440px;
+      background: #0d1218;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .msg {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .msg-user {
+      align-self: flex-end;
+      background: #1e3a5f;
+      color: #fff;
+    }
+    .msg-bot {
+      align-self: flex-start;
+      background: #16202c;
+      border: 1px solid var(--border);
+    }
+    .chat-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      display: flex;
+      gap: 12px;
+    }
+    .chat-input-row {
+      display: flex;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+      background: var(--card-bg);
+      gap: 10px;
+    }
+    .chat-input {
+      flex: 1;
+      background: #0d1218;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 14px;
+    }
+    .chat-input:focus { outline: none; border-color: var(--accent); }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--accent); }
+    
+    .audit-terminal {
+      background: #080b0f;
+      border: 1px solid #1a2533;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      height: 180px;
+      overflow-y: auto;
+      color: #a0aec0;
+    }
+    .audit-line { margin-bottom: 4px; }
+    .audit-ok { color: var(--accent); }
+    .audit-leak { color: var(--danger); font-weight: bold; }
+    
+    .peer-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .peer-indicator {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      display: inline-block;
+      margin-right: 6px;
+    }
+    .quiz-q { margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; }
+    .quiz-opt {
+      display: block;
+      padding: 8px 12px;
+      margin: 6px 0;
+      background: #111722;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .quiz-opt:hover { border-color: var(--accent); }
+    .quiz-opt.correct { background: rgba(38,161,123,0.2); border-color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-icon">🍐</div>
+      <div>
+        <h1>PearStudy</h1>
+        <div class="brand-subtitle">Offline Peer-to-Peer Course Knowledge Mesh & Deterministic Study Engine</div>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="badge badge-qvac">⚡ Local Deterministic Search (CPU)</span>
+      <span class="badge badge-offline">🛡️ Pear P2P Swarm Active</span>
+      <span class="badge badge-cloud">🚫 Cloud APIs: 0 (Zero Cloud)</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Sidebar -->
+    <div>
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-title">
+          <span>Synced Courses</span>
+          <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="syncP2P()">Sync Swarm</button>
+        </div>
+        <div id="course-list">Loading courses...</div>
+      </div>
+
+      <div class="card" style="margin-bottom: 16px;">
+        <div class="card-title">Connected Pear Nodes</div>
+        <div id="peer-list">Loading peers...</div>
+        <div style="margin-top: 10px; font-size: 11px; color: var(--text-muted);">
+          Feed: <code style="color: var(--gold);" id="feed-uri">pear://comp3001/a8f9c1</code>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Zero-Cloud Firewall</span>
+          <span style="font-size: 11px; color: var(--accent);">● Strict Local</span>
+        </div>
+        <div class="audit-terminal" id="audit-log">
+          <div class="audit-line audit-ok">[SYSTEM] Airgap verified: No outbound sockets.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div>
+      <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-chat')">🔍 Local Study Search</button>
+        <button class="tab-btn" onclick="switchTab('tab-quiz')">📝 Practice Quiz</button>
+        <button class="tab-btn" onclick="switchTab('tab-notes')">📚 Synced Lecture Chunks</button>
+      </div>
+
+      <!-- Tab 1: Chat -->
+      <div id="tab-chat" class="tab-pane">
+        <div class="chat-box">
+          <div class="chat-messages" id="chat-messages">
+            <div class="msg msg-bot">
+              👋 <strong>Welcome to PearStudy!</strong> Query your peer-synced lecture notes with local deterministic keyword and vector-space search. All data stays on your device—no external network requests.
+              <div class="chat-meta">
+                <span>Engine: PearStudy-Local-Search-v1</span>
+                <span>Latency: 0ms (In-Memory CPU)</span>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Search distributed consensus, Raft, or WAL recovery..." onkeydown="if(event.key==='Enter') sendQuestion()">
+            <button class="btn" onclick="sendQuestion()">Search Notes</button>
+          </div>
+        </div>
+        <div style="margin-top: 10px; display: flex; gap: 8px;">
+          <span style="font-size: 12px; color: var(--text-muted); align-self: center;">Suggested:</span>
+          <button class="btn btn-outline" style="font-size: 11px; padding: 4px 8px;" onclick="setQuery('How does Raft maintain consistency when a network partition occurs?')">Raft Partition</button>
+          <button class="btn btn-outline" style="font-size: 11px; padding: 4px 8px;" onclick="setQuery('How does write-ahead logging guarantee crash recovery?')">WAL Crash Recovery</button>
+          <button class="btn btn-outline" style="font-size: 11px; padding: 4px 8px;" onclick="setQuery('How does Kademlia DHT route lookups using XOR distance?')">Kademlia XOR</button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Quiz -->
+      <div id="tab-quiz" class="tab-pane" style="display: none;">
+        <div class="card">
+          <div class="card-title">
+            <span>On-Device Generated Practice Exam</span>
+            <button class="btn" onclick="generateQuiz()">Generate New Quiz</button>
+          </div>
+          <div id="quiz-container">
+            Click "Generate New Quiz" to synthesize questions directly from your local peer-synced notes.
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Notes -->
+      <div id="tab-notes" class="tab-pane" style="display: none;">
+        <div class="card">
+          <div class="card-title">
+            <span>Synced Course Documents (Local Hypercore Replicas)</span>
+          </div>
+          <div id="notes-container">Loading notes...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let activeCourses = [];
+    let selectedCourseId = "comp3001";
+
+    async function loadStatus() {
+      const res = await fetch('/api/status');
+      const data = await res.json();
+      
+      const peerList = document.getElementById('peer-list');
+      peerList.innerHTML = data.connected_peers.map(p => `
+        <div class="peer-card">
+          <div>
+            <span class="peer-indicator"></span>
+            <strong>${p.peer_name}</strong>
+            <div style="font-size: 10px; color: var(--text-muted);">${p.node_id} • ${p.protocol}</div>
+          </div>
+          <span style="font-size: 11px; color: var(--accent);">${p.latency_ms} ms</span>
+        </div>
+      `).join('');
+
+      renderAudit(data.audit);
+    }
+
+    async function loadCourses() {
+      const res = await fetch('/api/courses');
+      activeCourses = await res.json();
+      const list = document.getElementById('course-list');
+      list.innerHTML = activeCourses.map(c => `
+        <div class="course-item ${c.id === selectedCourseId ? 'selected' : ''}" onclick="selectCourse('${c.id}')">
+          <div class="course-code">${c.code}</div>
+          <div class="course-name">${c.title}</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">${c.notes.length} verified notes</div>
+        </div>
+      `).join('');
+
+      renderNotes();
+    }
+
+    function selectCourse(id) {
+      selectedCourseId = id;
+      loadCourses();
+    }
+
+    function renderNotes() {
+      const notesContainer = document.getElementById('notes-container');
+      const course = activeCourses.find(c => c.id === selectedCourseId) || activeCourses[0];
+      if (!course) return;
+      notesContainer.innerHTML = course.notes.map(n => `
+        <div style="margin-bottom: 14px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px;">
+          <h4 style="color: var(--accent); margin-bottom: 4px;">${n.title}</h4>
+          <div style="font-size: 12px; color: var(--gold); margin-bottom: 6px;">Key Concept: ${n.key_concept}</div>
+          <p style="font-size: 13px; color: var(--text);">${n.content}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderAudit(audit) {
+      const log = document.getElementById('audit-log');
+      log.innerHTML = audit.recent_events.map(e => `
+        <div class="audit-line ${e.is_cloud_leak ? 'audit-leak' : 'audit-ok'}">
+          [${e.time_str}] ${e.event_type} &rarr; ${e.destination} (${e.status})
+        </div>
+      `).join('');
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function sendQuestion() {
+      const input = document.getElementById('chat-input');
+      const query = input.value.trim();
+      if (!query) return;
+
+      const chatMessages = document.getElementById('chat-messages');
+      chatMessages.innerHTML += `
+        <div class="msg msg-user">${query}</div>
+      `;
+      input.value = '';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      const res = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      });
+      const data = await res.json();
+
+      chatMessages.innerHTML += `
+        <div class="msg msg-bot">
+          ${data.answer.replace(/\n/g, '<br>')}
+          <div class="chat-meta">
+            <span>⚡ ${data.metrics.tokens_per_second} terms/sec</span>
+            <span>⏱️ ${data.metrics.inference_time_ms} ms</span>
+            <span>🛡️ ${data.metrics.privacy_status}</span>
+          </div>
+        </div>
+      `;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      loadStatus();
+    }
+
+    function setQuery(text) {
+      document.getElementById('chat-input').value = text;
+      sendQuestion();
+    }
+
+    async function syncP2P() {
+      const res = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: selectedCourseId })
+      });
+      const data = await res.json();
+      document.getElementById('feed-uri').innerText = data.pear_uri;
+      loadStatus();
+    }
+
+    async function generateQuiz() {
+      const container = document.getElementById('quiz-container');
+      container.innerHTML = "<em>Generating practice questions locally...</em>";
+      const res = await fetch('/api/quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ module: selectedCourseId.toUpperCase() })
+      });
+      const data = await res.json();
+      container.innerHTML = data.quiz.map((q, idx) => `
+        <div class="quiz-q">
+          <strong>Question ${idx + 1}:</strong> ${q.question}
+          <div style="margin-top: 8px;">
+            ${q.options.map((opt, oIdx) => `
+              <div class="quiz-opt" onclick="checkAnswer(this, ${oIdx === q.correct_index}, '${q.explanation}')">
+                ${String.fromCharCode(65 + oIdx)}. ${opt}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+      loadStatus();
+    }
+
+    function checkAnswer(el, isCorrect, explanation) {
+      if (isCorrect) {
+        el.classList.add('correct');
+        alert("Correct! " + explanation);
+      } else {
+        alert("Incorrect. Review your local course notes and try again!");
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      event.target.classList.add('active');
+    }
+
+    loadStatus();
+    loadCourses();
+  </script>
+</body>
+</html>

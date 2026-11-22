@@ -1,0 +1,30 @@
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Node / frontend artifacts
+node_modules/
+dist/
+build/
+
+# Secrets & local runtime files
+.env
+.env.*
+*.log
+*.db
+*.sqlite3
+
+# OS & IDE files
+.DS_Store
+.idea/
+.vscode/

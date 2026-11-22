@@ -1,0 +1,10 @@
+[project]
+name = "01_pear_study"
+version = "0.1.0"
+description = "Offline-first P2P course knowledge mesh and deterministic study search engine (01_pear_study)"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
